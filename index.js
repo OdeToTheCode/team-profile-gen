@@ -124,5 +124,4 @@ function generateHTML() {
   })
 }
 
-
 start()
