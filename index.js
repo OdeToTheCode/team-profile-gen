@@ -8,41 +8,55 @@ const Intern = require('./lib/Intern')
 const teamMembers = []
 let complete = false
 
-async function open() {
-  const info = await inquirer.prompt(Manager.managerPrompts)
-  teamMembers.push(Manager.collectTeamInfo(info))
-  addTeamQuestion()
+async function start() {
+  // Ask the user for Manager information and wait for the response
+  const managerData = await inquirer.prompt(Manager.managerPrompts);
+
+  // Store the Manager information
+  teamMembers.push(Manager.collectTeamInfo(managerData));
+
+  // Start adding more team members
+  await addTeamMember();
 }
 
-async function addTeamQuestion() {
-  if(!complete) {
-    const response = await inquirer.prompt([
-      {
-        type: 'list',
-        message: 'What team member would you like to add?',
-        choices: ['engineer', 'intern', 'team complete'],
-        name: 'teamSelect'
-      }
-    ])
-    switch(response.teamSelect) {
+async function addTeamMember() {
+  // Keep asking the user to add team members until they choose "team complete"
+  if (!complete) {
+    // Ask the user to choose a team member type
+    const teamType = await inquirer.prompt([{
+      type: 'list',
+      name: 'teamSelect',
+      choices: ['engineer', 'intern', 'team complete'],
+      message: 'Which type of team member would you like to add?'
+    }]);
+
+    switch (teamType.teamSelect) {
       case 'engineer':
-        const engineerInfo = await inquirer.prompt(Engineer.engineerPrompts)
-        teamMembers.push(Engineer.collectTeamInfo(engineerInfo))
-        break
+        // Ask for Engineer information and store it
+        const engineerData = await inquirer.prompt(Engineer.engineerPrompts);
+        teamMembers.push(Engineer.collectTeamInfo(engineerData));
+        break;
+
       case 'intern':
-        const internInfo = await inquirer.prompt(Intern.internPrompts)
-        teamMembers.push(Intern.collectTeamInfo(internInfo))
-        break
+        // Ask for Intern information and store it
+        const internData = await inquirer.prompt(Intern.internPrompts);
+        teamMembers.push(Intern.collectTeamInfo(internData));
+        break;
+
       case 'team complete':
-        complete = true
+        // Set the complete flag and stop asking for more team members
+        complete = true;
     }
-    addTeamQuestion()
+
+    // Keep asking for more team members
+    await addTeamMember();
   } else {
-    generateHTML()
+    // Generate the HTML once all team members have been added
+    generateHTML();
   }
 }
 
-function generateHTML() {
+function generateHTML() { // dynamiclly generate the html using a template literal
   let html = `
   <!DOCTYPE html>
   <html lang="en">
@@ -62,29 +76,29 @@ function generateHTML() {
 
       <main class="container-fluid pt-5 d-flex justify-content-center flex-wrap">`
 
-      teamMembers.forEach(member => {
+      teamMembers.forEach(teamMember => {
         html += `
       <div class="card col-2 mx-2">
       <div class="card-header bg-primary text-light">
-          <h4 class="card-title">${member.getName()}</h4>
-          <h4 class="card-text">${member.getRole()}</h4>
+          <h4 class="card-title">${teamMember.getName()}</h4>
+          <h4 class="card-text">${teamMember.getRole()}</h4>
       </div>
 
       <div class="card-body my-3">
           <ul class="list-group">
-              <li class="list-group-item">ID: ${member.getId()}</li>
-              <li class="list-group-item">Email: <a href="mailto:${member.getEmail()}">${member.getEmail()}</a></li>
+              <li class="list-group-item">ID: ${teamMember.getId()}</li>
+              <li class="list-group-item">Email: <a href="mailto:${teamMember.getEmail()}">${teamMember.getEmail()}</a></li>
               <li class="list-group-item">`
       
-      switch (member.getRole()) {
+      switch (teamMember.getRole()) {
           case 'Manager':
-              html += `Office Number: ${member.officeNumber}</li>`
+              html += `Office Number: ${teamMember.officeNumber}</li>`
               break
           case 'Engineer':
-              html += `Github: <a href="https://github.com/${member.github}" target="_blank">${member.github}</a></li>`
+              html += `Github: <a href="https://github.com/${teamMember.github}" target="_blank">${teamMember.github}</a></li>`
               break
           case 'Intern':
-              html += `School: ${member.school}</li>`
+              html += `School: ${teamMember.school}</li>`
               break
       }
       html += `
@@ -97,8 +111,8 @@ function generateHTML() {
   </body>
   </html>`
 
-  fs.writeFile('./dist/index.html', html, err => err ? console.log(err) : console.log('Success'))
+  fs.writeFile('./dist/index.html', html, err => err ? console.log(err) : console.log('Your Team page has been generated!!'))
 
 }
 
-open()
+start()
