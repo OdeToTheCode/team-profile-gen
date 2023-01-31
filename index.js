@@ -92,7 +92,7 @@ function generateHTML() { // dynamiclly generate the html using a template liter
       
       switch (teamMember.getRole()) {
           case 'Manager':
-              html += `Office Number: ${teamMember.officeNumber}</li>`
+              html += `Office Number: ${teamMember.officeNumber} </li>`
               break
           case 'Engineer':
               html += `Github: <a href="https://github.com/${teamMember.github}" target="_blank">${teamMember.github}</a></li>`
